@@ -1,5 +1,6 @@
 %% Importing an image
 clear all
+
 imfinfo('../assets/breastXray.tif')
 f = imread('../assets/breastXray.tif');
 imshow(f)
@@ -27,6 +28,7 @@ montage({g2,g3})
 %% Contrast stretching transformation
 clear all
 close all
+
 f = imread('../assets/bonescan-front.tif');
 r = double(f);
 k = mean2(r);
@@ -38,42 +40,57 @@ imshowpair(f, g, "montage")
 %% Contrast enhacement using histogram
 clear all
 close all
+
 f=imread('../assets/pollen.tif');
 imshow(f)
+
 figure
 imhist(f);
 
 % Stretch intensity
 close all
+
 g=imadjust(f,[0.3 0.55]);
 montage({f, g})
+
 figure
 imhist(g);
 
 % PDF and CDF
 g_pdf = imhist(g) ./ numel(g);
 g_cdf = cumsum(g_pdf);
+
 close all
+
+figure
 imshow(g);
+
+figure
 subplot(1,2,1)
 plot(g_pdf)
 subplot(1,2,2)
 plot(g_cdf)
 
+
 % Histogram equalisation
 x = linspace(0, 1, 256);
+
 figure
 plot(x, g_cdf)
 axis([0 1 0 1])
+
 set(gca, 'xtick', 0:0.2:1)
 set(gca, 'ytick', 0:0.2:1)
+
 xlabel('Input intensity values', 'fontsize', 9)
 ylabel('Output intensity values', 'fontsize', 9)
 title('Transformation function', 'fontsize', 12)
 
 % Plots of all three images
 h = histeq(g,256);
+
 close all
+
 montage({f, g, h})
 figure;
 subplot(1,3,1); imhist(f);
@@ -83,6 +100,7 @@ subplot(1,3,3); imhist(h);
 %% Noise-reduction with low pass filter
 clear all
 close all
+
 f = imread('../assets/noisyPCB.jpg');
 imshow(f)
 
@@ -99,3 +117,63 @@ montage({f, g_box, g_gauss})
 %% Median filtering
 g_median = medfilt2(f, [7 7], 'zero');
 figure; montage({f, g_median})
+
+%% Sharpening the image with Laplacian, Sobel and Unsharp filters
+clear all
+close all
+
+f = imread('../assets/moon.tif');
+imshow(f)
+
+% Laplacian
+w_lap = fspecial('laplacian', 0.2);
+g_lap = imfilter(f, w_lap, 0);
+figure
+montage({f, g_lap})
+
+% Sobel
+w_sobel = fspecial('sobel');
+g_sobel = imfilter(f, w_sobel, 0);
+figure
+montage({f, g_sobel})
+
+% Unsharp
+w_unsharp = fspecial('unsharp', 0.5);
+g_unsharp = imfilter(f, w_unsharp, 0);
+figure
+montage({f, g_unsharp})
+
+%% Improve contrast of lake&tree.png
+clear all
+close all
+
+f = imread('../assets/lake&tree.png');
+imshow(f)
+
+g = imadjust(f);
+figure
+montage({f, g})
+
+%% Find edges in circles.tif using Sobel
+clear all
+close all
+
+f = imread('../assets/circles.tif');
+imshow(f)
+
+w_sobel = fspecial('sobel');
+g = imfilter(f, w_sobel, 0);
+
+figure
+montage({f, g})
+
+%% Improve lighting and colour of office.jpg
+clear all
+close all
+
+f = imread('../assets/office.jpg');
+imshow(f)
+
+g = imadjust(f, [], [], 0.8);  % gamma brighten
+figure
+montage({f, g})
