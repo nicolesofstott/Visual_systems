@@ -225,52 +225,66 @@ close all
 
 %% Read image
 RGB = imread('../assets/normal-blood.png');
-figure; imshow(RGB); title('Original')
+figure; imshow(RGB); title('Original image')
 
-%% Convert to grayscale
+%% Convert to grayscale (microscope image is usually RGB)
 I = rgb2gray(RGB);
 figure; imshow(I); title('Grayscale')
 
-%% Improve contrast
+%% Improve contrast (lab style)
 I2 = imadjust(I);
 figure; imshow(I2); title('After imadjust')
 
-%% Smooth image
+%% Noise reduction (use either gaussian or median; both are in your labs)
 w_gauss = fspecial('Gaussian', [7 7], 1.0);
 I3 = imfilter(I2, w_gauss, 0);
+% Alternative:
+% I3 = medfilt2(I2, [5 5]);
+
 figure; imshow(I3); title('After smoothing')
 
-%% Threshold
+%% Threshold to binary (lab style using graythresh + imbinarize)
 level = graythresh(I3);
 BW = imbinarize(I3, level);
 
-% Ensure cells are white
+% Depending on the image, cells might be dark on light background.
+% If the cells appear black in BW, invert it:
+% (Keep the version where CELLS are WHITE)
 if mean(BW(:)) > 0.5
     BW = imcomplement(BW);
 end
 
-figure; imshow(BW); title('Initial binary')
+figure; imshow(BW); title('Initial binary (cells should be white)')
 
-%% Morphological cleanup
-BW = bwareaopen(BW, 50);      % remove small noise
+%% Morphological cleanup (lab style)
+BW = bwareaopen(BW, 50);         % remove tiny noise (tweak 30–200)
 SE = strel('disk', 2);
-BW = imopen(BW, SE);
-BW = imclose(BW, SE);
-BW = imfill(BW, 'holes');
+BW = imopen(BW, SE);             % remove small artifacts
+BW = imclose(BW, SE);            % close small gaps
+BW = imfill(BW, 'holes');        % fill holes inside cells
 
-figure; imshow(BW); title('Cleaned mask')
+figure; imshow(BW); title('Cleaned binary mask')
 
-%% Connected components
-CC = bwconncomp(BW, 8);
+%% Connected components = cells 
+CC = bwconncomp(BW_sep, 8);
 numPixels = cellfun(@numel, CC.PixelIdxList);
 
-% Filter by size
-minA = 200;       % adjust if needed
-maxA = 20000;     % adjust if merged blobs
-
+% Filter by size to reject tiny specks and huge merged blobs
+minA = 200;        % tweak depending on your image scale
+maxA = 20000;      % tweak if merged blobs are counted as one
 keep = (numPixels >= minA) & (numPixels <= maxA);
+
 cellCount = sum(keep);
 
-fprintf('\nEstimated number of red blood cells: %d\n', cellCount);
+fprintf('Estimated number of red blood cells: %d\n', cellCount);
 
+%% (Optional) show kept components only (no boxes/labels)
+% Create a mask containing only accepted components
+BW_cells = false(size(BW_sep));
+idxKeep = find(keep);
+for k = 1:numel(idxKeep)
+    BW_cells(CC.PixelIdxList{idxKeep(k)}) = true;
+end
+
+figure; imshow(BW_cells); title('Final counted cell mask (white = counted)')
 

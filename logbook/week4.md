@@ -247,3 +247,18 @@ Observations and reflections:
 - The difference (gd - ge) emphasised local intensity differences.
 
 I found it interesting that morphology still works in grayscale, but the interpretation shifts and instead of adding/removing white pixels, it manipulates local intensity extremes. The gradient result felt like a structural edge detector built from max/min neighbourhood behaviour rather than derivatives.
+
+## DRAW WEEK CHALLENGES
+
+# Challenge 1 - Fillings 
+
+Number of fillings detected: 2
+Filling sizes (pixels):
+       11846
+        7385
+
+# Challenge 3 - Blood cell count
+
+Estimated number of red blood cells: 39
+
+*Disclaimer: AI was used to help debug some issues.*
